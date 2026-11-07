@@ -111,6 +111,18 @@ The application was developed and tested locally using Apache NetBeans, Apache T
 
 Only fictional test records should be used for demonstrations.
 
+
+###################################### Live Application  ####################################################
+
+The Hospital Management System is deployed on Railway using Apache Tomcat 9 and MySQL.
+
+**Live Demo:** hospital-management-system-ajt-production.up.railway.app
+
+**Features:** Patient management, doctor management,
+appointment management, login/logout, Spring MVC,
+and Hibernate ORM.
+
+
 ## Conclusion
 
 The Hospital Management System demonstrates the integration of Java web technologies with MySQL. It provides basic hospital record management features through Servlets, JSP, JDBC, Hibernate, Spring, and Swing.
