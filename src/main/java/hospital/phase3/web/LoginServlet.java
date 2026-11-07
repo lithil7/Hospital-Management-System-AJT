@@ -2,6 +2,9 @@
 package hospital.phase3.web;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,8 +21,9 @@ public class LoginServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.getRequestDispatcher("/WEB-INF/views/login.jsp")
-               .forward(request, response);
+        request.getRequestDispatcher(
+                "/WEB-INF/views/login.jsp"
+        ).forward(request, response);
     }
 
     @Override
@@ -31,17 +35,35 @@ public class LoginServlet extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-        // Classroom demonstration only.
-        if ("admin".equals(username) &&
-            "admin123".equals(password)) {
+        String validUsername =
+                System.getenv("ADMIN_USERNAME");
+
+        String validPassword =
+                System.getenv("ADMIN_PASSWORD");
+
+        boolean configured =
+                validUsername != null &&
+                !validUsername.isEmpty() &&
+                validPassword != null &&
+                !validPassword.isEmpty();
+
+        boolean correctUsername = configured &&
+                secureEquals(username, validUsername);
+
+        boolean correctPassword = configured &&
+                secureEquals(password, validPassword);
+
+        if (correctUsername && correctPassword) {
 
             HttpSession session = request.getSession(true);
 
             request.changeSessionId();
+
             session.setAttribute("username", username);
 
             response.sendRedirect(
-                request.getContextPath() + "/records?type=patients"
+                request.getContextPath()
+                + "/records?type=patients"
             );
 
         } else {
@@ -53,5 +75,18 @@ public class LoginServlet extends HttpServlet {
 
             doGet(request, response);
         }
+    }
+
+    private boolean secureEquals(String supplied,
+                                 String expected) {
+
+        if (supplied == null || expected == null) {
+            return false;
+        }
+
+        return MessageDigest.isEqual(
+                supplied.getBytes(StandardCharsets.UTF_8),
+                expected.getBytes(StandardCharsets.UTF_8)
+        );
     }
 }
