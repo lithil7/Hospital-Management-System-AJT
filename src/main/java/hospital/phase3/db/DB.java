@@ -14,15 +14,11 @@ public class DB {
     static {
         try (InputStream input =
                 DB.class.getClassLoader()
-                .getResourceAsStream("database.properties")) {
+                    .getResourceAsStream("database.properties")) {
 
-            if (input == null) {
-                throw new IllegalStateException(
-                    "database.properties was not found"
-                );
+            if (input != null) {
+                properties.load(input);
             }
-
-            properties.load(input);
 
             Class.forName("com.mysql.cj.jdbc.Driver");
 
@@ -31,20 +27,48 @@ public class DB {
         }
     }
 
-    public static Connection getConnection() throws SQLException {
+    public static String value(String key) {
 
-        String url = properties.getProperty("db.url");
-        String username = properties.getProperty("db.user");
-        String password = properties.getProperty("db.password");
+        String envName;
 
-        return DriverManager.getConnection(
-            url,
-            username,
-            password
-        );
+        switch (key) {
+            case "db.url":
+                envName = "DB_URL";
+                break;
+            case "db.user":
+                envName = "DB_USER";
+                break;
+            case "db.password":
+                envName = "DB_PASSWORD";
+                break;
+            default:
+                return properties.getProperty(key);
+        }
+
+        String envValue = System.getenv(envName);
+
+        if (envValue != null && !envValue.isEmpty()) {
+            return envValue;
+        }
+
+        return properties.getProperty(key);
     }
 
-    public static String value(String key) {
-        return properties.getProperty(key);
+    public static Connection getConnection()
+            throws SQLException {
+
+        String url = value("db.url");
+        String user = value("db.user");
+        String password = value("db.password");
+
+        if (url == null || url.isEmpty()) {
+            throw new SQLException(
+                "Database URL not configured"
+            );
+        }
+
+        return DriverManager.getConnection(
+            url, user, password
+        );
     }
 }
